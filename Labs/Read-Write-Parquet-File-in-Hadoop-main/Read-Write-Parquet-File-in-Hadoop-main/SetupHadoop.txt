@@ -1,0 +1,120 @@
+-Cập nhật hệ thống trước khi tiến hành cài đặt:
+	sudo apt update
+-Cài đặt OpenJDK trên Ubuntu:
+	sudo apt install openjdk-8-jdk -y
+-Xác minh phiên bản java hiện tại:
+	java -version; javac -version
+-Thiết lập người dùng non-root cho môi trường hadoop
+-Cài đặt OpenSSH trên Ubuntu:
+	sudo apt install openssh-server openssh-client -y
+-Tạo người dùng Hadoop:
+	sudo adduser hdoop
+-Chuyển sang người dùng mới được tạo và nhập mật khẩu tương ứng:
+	su - hdoop
+-Bật SSH không mật khẩu cho người dùng Hadoop
+-Tạo cặp khóa SSH và xác định vị trí sẽ được lưu trữ trong:
+	ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+-Sử dụng catlệnh để lưu trữ khóa công khai dưới dạng allow_keys trong thư mục ssh:
+	cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+-Đặt quyền cho người dùng của bạn bằng chmodlệnh:
+	chmod 0600 ~/.ssh/authorized_keys
+-Người dùng Hadoop hiện có thể thiết lập kết nối SSH với máy chủ cục bộ một cách liền mạch:
+	ssh localhost
+-Tải xuống và cài đặt Hadoop trên Ubuntu
+-Tải xuống gói Hadoop (3.2.2) bằng lệnh wget:
+	wget https://dlcdn.apache.org/hadoop/common/hadoop-3.2.2/hadoop-3.2.2.tar.gz
+-Giải nén các tệp:
+	tar xzf hadoop-3.2.2.tar.gz
+-Triển khai Hadoop một nút (Chế độ giả phân tán)
+-Định cấu hình các biến môi trường Hadoop (bashrc)
+	sudo nano .bashrc
+-Xác định các biến môi trường Hadoop bằng cách thêm nội dung sau vào cuối tệp:
+	#Hadoop Related Options
+	export HADOOP_HOME=/home/hdoop/hadoop-3.2.2
+	export HADOOP_INSTALL=$HADOOP_HOME
+	export HADOOP_MAPRED_HOME=$HADOOP_HOME
+	export HADOOP_COMMON_HOME=$HADOOP_HOME
+	export HADOOP_HDFS_HOME=$HADOOP_HOME
+	export YARN_HOME=$HADOOP_HOME
+	export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+	export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+	export HADOOP_OPTS"-Djava.library.path=$HADOOP_HOME/lib/native"
+-Áp dụng các thay đổi cho môi trường đang chạy hiện tại:
+	source ~/.bashrc
+-Chỉnh sửa tệp hadoop-env.sh
+-Sử dụng $HADOOP_HOMEbiến đã tạo trước đó để truy cập tệp hadoop-env.sh:
+	sudo nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+-Bỏ ghi chú $JAVA_HOMEbiến và thêm đường dẫn đầy đủ đến cài đặt OpenJDK trên hệ thống của bạn:
+	export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+-Chỉnh sửa tệp core-site.xml
+-Mở tệp core-site.xml trong trình soạn thảo văn bản:
+	sudo nano $HADOOP_HOME/etc/hadoop/core-site.xml
+-Thêm cấu hình sau để ghi đè các giá trị mặc định cho thư mục tạm thời và thêm URL HDFS:
+	<configuration>
+	<property>
+  		<name>hadoop.tmp.dir</name>
+  		<value>/home/hdoop/tmpdata</value>
+	</property>
+	<property>
+  		<name>fs.default.name</name>
+  		<value>hdfs://127.0.0.1:9000</value>
+	</property>
+	</configuration>
+-Chỉnh sửa tệp hdfs-site.xml
+-Mở tệp hdfs-site.xml để chỉnh sửa:
+	sudo nano $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+-Thêm cấu hình sau vào tệp:
+	<configuration>
+	<property>
+  		<name>dfs.data.dir</name>
+  		<value>/home/hdoop/dfsdata/namenode</value>
+	</property>
+	<property>
+  		<name>dfs.data.dir</name>
+  		<value>/home/hdoop/dfsdata/datanode</value>
+	</property>
+	<property>
+  		<name>dfs.replication</name>
+  		<value>1</value>
+	</property>
+	</configuration>
+-Chỉnh sửa tệp mapred-site.xml
+-Truy cập tệp mapred-site.xml và xác định các giá trị MapReduce:
+	sudo nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
+-Thêm cấu hình sau để thay đổi giá trị tên khung MapReduce mặc định thành yarn:
+	<configuration> 
+	<property> 
+  		<name>mapreduce.framework.name</name> 
+  		<value>yarn</value> 
+	</property> 
+	</configuration>
+-Chỉnh sửa tập tin fiber-site.xml:
+	sudo nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
+-Nối cấu hình sau vào tệp:
+	<configuration>
+	<property>
+  		<name>yarn.nodemanager.aux-services</name>
+  		<value>mapreduce_shuffle</value>
+	</property>
+	<property>
+  		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+  		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+	<property>
+  		<name>yarn.resourcemanager.hostname</name>
+  		<value>127.0.0.1</value>
+	</property>
+	<property>
+  		<name>yarn.acl.enable</name>
+  		<value>0</value>
+	</property>
+	<property>
+  		<name>yarn.nodemanager.env-whitelist</name>   				<value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PERPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_MAPRED_HOME</value>
+	</property>
+	</configuration>
+-Định dạng mã tên HDFS:
+	hdfs namenode -format
+-Khởi động tất cả các cụm Hadoop:
+	start-all.sh
+-Kiểm tra quy trình Java đang chạy chứa tất cả các daemon HDFS và YARN:
+	jps

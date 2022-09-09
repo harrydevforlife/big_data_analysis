@@ -1,0 +1,19 @@
+Pull images cassandra về local:
+docker pull cassandra
+
+Tạo node1:
+docker run --name cassandra-1 -p 9042:9042 -d cassandra:3.7
+
+xem ip address node 1:
+docker inspect --format="{{ .NetworkSettings.IPAddress }}" cassandra-1
+
+Tạo node2:
+docker run --name cassandra-2 -p 9043:9042 -d -e CASSANDRA_SEEDS=172.17.0.2 cassandra:3.7   (thêm địa chỉ ip máy 1 vào)
+
+xem ip address node 2:
+docker inspect --format="{{ .NetworkSettings.IPAddress }}" cassandra-2
+
+Tạo node 3:
+docker run --name cassandra-3 -p 9044:9042 -d -e CASSANDRA_SEEDS=172.17.0.2,172.17.0.3 cassandra:3.7
+
+

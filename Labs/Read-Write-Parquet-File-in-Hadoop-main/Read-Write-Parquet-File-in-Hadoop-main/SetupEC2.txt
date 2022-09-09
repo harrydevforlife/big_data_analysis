@@ -1,0 +1,6 @@
+Tạo máy ảo EC2 trên AWS
+Máy ảo EC2 trên AWS được tạo như thông thường và có các đặc tính đặc biệt sau:
+	+ Chọn máy Cloud9Ubuntu-2020-08-26T15-11
+	+ Chọn phiên bản của máy: 2 vCPUs và 8 Memory (GiB)
+	+ Bộ nhớ máy là 32 GB
+	+ Cấu hình bảo mật: Mình sẽ bật tất cả các port và chỗ Source chọn Anywhere
